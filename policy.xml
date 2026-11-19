@@ -1,0 +1,24 @@
+<policies>
+    <inbound>
+        <base />
+        <set-backend-service backend-id="{backend-id}" />
+        <llm-emit-token-metric>
+            <dimension name="Subscription ID" />
+            <dimension name="Client IP address" value="@(context.Request.IpAddress)" />
+        </llm-emit-token-metric>
+    </inbound>
+    <outbound>
+        <base />
+    </outbound>
+    <on-error>
+        <base />
+        <choose>
+            <!--Return a generic error that does not reveal backend pool details.-->
+            <when condition="@(context.Response.StatusCode == 503)">
+                <return-response>
+                    <set-status code="503" reason="Service Unavailable" />
+                </return-response>
+            </when>
+        </choose>
+    </on-error>
+</policies>
