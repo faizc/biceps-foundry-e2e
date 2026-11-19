@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.48.1.52935",
-      "templateHash": "1955785702857655852"
+      "templateHash": "9855754825462872754"
     }
   },
   "parameters": {
@@ -3138,7 +3138,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.48.1.52935",
-              "templateHash": "10766534795238307341"
+              "templateHash": "14094501181711063018"
             }
           },
           "parameters": {
@@ -3287,7 +3287,7 @@
               "type": "array",
               "value": [
                 {
-                  "name": "default",
+                  "name": "backend101",
                   "location": "[parameters('location')]",
                   "priority": 10,
                   "weight": 30,

@@ -104,7 +104,7 @@ output aiSearchConnection string = aiSearchName
 
 output extendedAIServicesConfig array = [
   {
-    name: 'default'
+    name: 'backend101'
     location: location
     priority: 10
     weight: 30
