@@ -16,13 +16,13 @@ languages:
 > For support on deploying the right network isolation template, check out the [GitHub Copilot for Azure skill for private networking](https://github.com/microsoft/GitHub-Copilot-for-Azure/blob/main/plugin/skills/microsoft-foundry/resource/private-network/private-network.md) set-up!
 
 > **IMPORTANT**
-> Please note this template does not support using Agent tools behind a VNET. Please refer to [template 19](../19-private-network-agent-tools/) and the [TESTING-GUIDE.md](../19-private-network-agent-tools/tests/TESTING-GUIDE.md) to ensure tool traffic also goes through your vnet. 
+> Please note this template does not support using Agent tools behind a VNET. Use the upstream "private network agent tools" template (template 19) if tool traffic must also go through your vnet. 
 
 ---
 ## Overview
 This infrastructure-as-code (IaC) solution deploys a network-secured agent environment with private networking and role-based access control (RBAC).
 
-Standard setup supports private network isolation through utilizing **Bring Your Own Virtual Network (BYO VNet)** approach, also known as **custom VNet support with subnet delegation.** Please note this template does not support using Agent tools behind a VNET. Please use [template 19](../19-private-network-agent-tools/) for this.  
+Standard setup supports private network isolation through utilizing **Bring Your Own Virtual Network (BYO VNet)** approach, also known as **custom VNet support with subnet delegation.** Please note this template does not support using Agent tools behind a VNET. Please use the upstream template 19 (private network agent tools) for this.  
 
 This implementation gives you full control over the inbound and outbound communication paths for your agent. You can restrict access to only the resources explicitly required by your agent, such as storage accounts, databases, or APIs, while blocking all other traffic by default. This approach ensures that your agent operates within a tightly scoped network boundary, reducing the risk of data leakage or unauthorized access. By default, this setup simplifies security configuration while enforcing strong isolation guarantees, ensuring that each agent deployment remains secure, compliant, and aligned with enterprise networking policies. 
 
@@ -36,27 +36,11 @@ Use this template when you need:
 - **Standard agent setup with BYO resources** — Customer-managed Storage, Cosmos DB, and AI Search for data residency and compliance
 - **System Assigned Managed Identity** — Simplified identity management with platform-managed credentials
 
-### Template Decision Guide
-
-Use the table below to choose the right infrastructure template for your scenario:
-
-| Template | Agent Type | Networking | Identity | Key Use Case |
-|----------|-----------|------------|----------|-------------|
-| [**15** (this template)](../15-private-network-standard-agent-setup/) | Standard (BYO resources) | BYO VNet + Private Endpoints | System Assigned MI | E2E network isolation with full agent capabilities |
-| [**19**](../19-private-network-agent-tools/) | Standard (BYO resources) | BYO VNet + Private Endpoints | System Assigned MI | Same as 15 **plus** tools behind VNet (MCP, OpenAPI, Functions, A2A) |
-| [**17**](../17-private-network-standard-user-assigned-identity-agent-setup/) | Standard (BYO resources) | BYO VNet + Private Endpoints | **User Assigned MI** | Same as 15 but with user-managed identity |
-| [**16**](../16-private-network-standard-agent-apim-setup-preview/) | Standard (BYO resources) | BYO VNet + Private Endpoints | System Assigned MI | Same as 15 **plus** private APIM integration (preview) |
-| [**18**](../18-managed-virtual-network-preview/) | Standard (BYO resources) | **Managed VNet** (Microsoft-managed) | System Assigned MI | Network isolation without managing your own VNet (preview) |
-| [**15a**](../15a-private-network-evaluation-only-setup/) | Evaluation only | BYO VNet + Private Endpoints | System Assigned MI | Minimal setup for evaluation — no Cosmos DB, AI Search, or capability host |
-| [**11**](../11-private-network-basic-vnet/) | **Basic** (platform-managed) | BYO VNet injection | System Assigned MI | Basic agents with VNet isolation — no BYO resources needed |
-| [**41**](../41-standard-agent-setup/) | Standard (BYO resources) | **Public** (no VNet) | System Assigned MI | Standard agents without network isolation |
-| [**40**](../40-basic-agent-setup/) | **Basic** (platform-managed) | **Public** (no VNet) | System Assigned MI | Simplest setup — no BYO resources, no private networking |
-
 ---
 
 ## Deploy to Azure
 
-[![Deploy To Azure](https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/1-CONTRIBUTION-GUIDE/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fazure-ai-foundry%2Ffoundry-samples%2Frefs%2Fheads%2Fmain%2Finfrastructure%2Finfrastructure-setup-bicep%2F15-private-network-standard-agent-setup%2Fazuredeploy.json)
+[![Deploy To Azure](https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/1-CONTRIBUTION-GUIDE/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Ffaizc%2Fbiceps-foundry-e2e%2Frefs%2Fheads%2Fmain%2Fazuredeploy.json)
 
 ---
 
@@ -81,7 +65,7 @@ Use the table below to choose the right infrastructure template for your scenari
    az provider register --namespace 'Microsoft.ContainerService'
    ```
 
-   > ⚠️ **`Microsoft.App` and `Microsoft.ContainerService` are mandatory for network injection.** When `networkInjections.scenario='agent'` is used, the capability host is created on the agent subnet's Azure Container Apps environment. If either provider is in `NotRegistered`, the failure surfaces **after** the Foundry account resource is already accepted — the account reaches `provisioningState: Failed` (error: *"Subscription … is not registered with the required resource providers … Microsoft.App and Microsoft.ContainerService"*) and must be cleaned up before retrying (see [Account Deletion Prerequisites and Cleanup Guidance](#account-deletion-prerequisites-and-cleanup-guidance)). Run the [preflight check](../deployment-tools/preflight/README.md) to catch this before any resource is created.
+   > ⚠️ **`Microsoft.App` and `Microsoft.ContainerService` are mandatory for network injection.** When `networkInjections.scenario='agent'` is used, the capability host is created on the agent subnet's Azure Container Apps environment. If either provider is in `NotRegistered`, the failure surfaces **after** the Foundry account resource is already accepted — the account reaches `provisioningState: Failed` (error: *"Subscription … is not registered with the required resource providers … Microsoft.App and Microsoft.ContainerService"*) and must be cleaned up before retrying (see [Account Deletion Prerequisites and Cleanup Guidance](#account-deletion-prerequisites-and-cleanup-guidance)). Verify provider registration (`az provider show -n Microsoft.App --query registrationState`) before deploying.
 
 1. Network administrator permissions (if operating in a restricted or enterprise environment)
 
@@ -89,7 +73,7 @@ Use the table below to choose the right infrastructure template for your scenari
     * If no parameters are passed in, this template creates an Microsoft Foundry resource, Foundry project, Azure Cosmos DB for NoSQL, Azure AI Search, and Azure Storage account
 1. Azure CLI installed and configured on your local workstation or deployment pipeline server
 
-> **💡 Recommended**: Run the [preflight check](../deployment-tools/preflight/README.md) before deploying to catch common misconfigurations (provider registration, subnet conflicts, soft-deleted accounts) before they surface as cryptic ARM errors mid-deploy.
+> **💡 Recommended**: Run `az deployment group what-if` before deploying to catch common misconfigurations (provider registration, subnet conflicts, soft-deleted accounts) before they surface as cryptic ARM errors mid-deploy.
 
 ---
 
@@ -126,7 +110,7 @@ The delegated agent subnet runs the agent compute on **Azure Container Apps** (t
 1. The delegated agent subnet must be exclusively used by a single Foundry account. It cannot be shared across accounts.
 2. The Foundry resource and the virtual network must be in the same Azure region. BYO resources (Storage, Cosmos DB, AI Search) may be in different regions.
 3. Use only supported RFC 1918 or RFC 6598 address space. For RFC 1918, use addresses within `10.0.0.0/8`, `172.16.0.0/12`, or `192.168.0.0/16`. For RFC 6598 (CGNAT), use addresses within `100.64.0.0/10`, excluding `100.100.0.0/17`, `100.100.192.0/19`, and `100.100.224.0/19`. Public IP ranges aren't supported.
-4. This template does **not** support tools (MCP servers, OpenAPI tools, Azure Functions, A2A) behind the VNet. Use [template 19](../19-private-network-agent-tools/) for that scenario.
+4. This template does **not** support tools (MCP servers, OpenAPI tools, Azure Functions, A2A) behind the VNet. Use the upstream template 19 (private network agent tools) for that scenario.
 5. There is no upgrade path from BYO VNet (this template) to Managed Virtual Network (template 18). A Foundry resource redeployment is required.
 6. All projects within the same Foundry account share model deployments. Per-project model isolation is not supported.
 7. Cosmos DB is deployed as single-region. Multi-region replication must be configured manually post-deployment.
@@ -237,7 +221,7 @@ To use an existing Azure AI Search resource, set aiSearchServiceResourceId param
 >   --aad-auth-failure-mode http401WithBearerChallenge
 > ```
 
-> **AI Search → AI Services connectivity**: This template configures AI Services with `networkAcls.bypass: AzureServices`, which allows Azure AI Search to reach AI Services through the trusted-services bypass. This works for most scenarios. If your security policy requires removing the bypass (setting it to `None`), deploy [Shared Private Links](../deployment-tools/networking/README.md) from AI Search to AI Services instead — this creates a private endpoint from AI Search's managed infrastructure directly into AI Services via Private Link.
+> **AI Search → AI Services connectivity**: This template configures AI Services with `networkAcls.bypass: AzureServices`, which allows Azure AI Search to reach AI Services through the trusted-services bypass. This works for most scenarios. If your security policy requires removing the bypass (setting it to `None`), deploy Shared Private Links from AI Search to AI Services instead — this creates a private endpoint from AI Search's managed infrastructure directly into AI Services via Private Link.
 
 
 4. **Use an existing Azure Storage account**
@@ -299,7 +283,7 @@ az group delete --name <your-resource-group> --yes --no-wait
 
 > **Important**: If you need to reuse the same subnet, follow the [Account Deletion Prerequisites and Cleanup Guidance](#account-deletion-prerequisites-and-cleanup-guidance) to properly purge the account and wait for the capability host to fully unlink (~20 minutes).
 
-> **💡 Tip**: For VNet-injection deployments, use the [cleanup tool](../deployment-tools/cleanup/README.md) it handles the required deletion order (project caphost → account caphost → purge → SAL wait) automatically.
+> **💡 Tip**: For VNet-injection deployments, delete in this order: project caphost → account caphost → purge the account → wait for the service association link (SAL) to clear. `deleteCapHost.sh` in this repo handles the capability host steps.
 
 ---  
 
