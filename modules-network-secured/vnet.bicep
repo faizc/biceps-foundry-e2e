@@ -46,6 +46,12 @@ var agentSubnet = empty(agentSubnetPrefix) ? cidrSubnet(vnetAddress, 24, 0) : ag
 var peSubnet = empty(peSubnetPrefix) ? cidrSubnet(vnetAddress, 24, 1) : peSubnetPrefix
 var apimSubnet = empty(apimSubnetPrefix) ? cidrSubnet(vnetAddress, 24, 2) : apimSubnetPrefix
 
+// NSG for APIM Subnet
+resource nsgApim 'Microsoft.Network/networkSecurityGroups@2023-11-01' = {
+  name: 'nsg-apim-${vnetName}'
+  location: resourceGroup().location
+}
+
 resource virtualNetwork 'Microsoft.Network/virtualNetworks@2024-05-01' = {
   name: vnetName
   location: location
@@ -80,6 +86,9 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2024-05-01' = {
         name: apimSubnetName
         properties: {
           addressPrefix: apimSubnet
+          networkSecurityGroup: {
+            id: nsgApim.id
+          }
           delegations: [
             {
               name: 'Microsoft.web/serverFarms'

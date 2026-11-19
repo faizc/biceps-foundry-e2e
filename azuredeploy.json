@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.48.1.52935",
-      "templateHash": "5428483331626933108"
+      "templateHash": "1955785702857655852"
     }
   },
   "parameters": {
@@ -392,7 +392,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.48.1.52935",
-              "templateHash": "14256178426260853513"
+              "templateHash": "16031896601103495171"
             }
           },
           "parameters": {
@@ -533,7 +533,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.48.1.52935",
-                      "templateHash": "17388143409294282825"
+                      "templateHash": "10363632633004108875"
                     }
                   },
                   "parameters": {
@@ -609,6 +609,12 @@
                   },
                   "resources": [
                     {
+                      "type": "Microsoft.Network/networkSecurityGroups",
+                      "apiVersion": "2023-11-01",
+                      "name": "[format('nsg-apim-{0}', parameters('vnetName'))]",
+                      "location": "[resourceGroup().location]"
+                    },
+                    {
                       "type": "Microsoft.Network/virtualNetworks",
                       "apiVersion": "2024-05-01",
                       "name": "[parameters('vnetName')]",
@@ -644,6 +650,9 @@
                             "name": "[parameters('apimSubnetName')]",
                             "properties": {
                               "addressPrefix": "[variables('apimSubnet')]",
+                              "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', format('nsg-apim-{0}', parameters('vnetName')))]"
+                              },
                               "delegations": [
                                 {
                                   "name": "Microsoft.web/serverFarms",
@@ -655,7 +664,10 @@
                             }
                           }
                         ]
-                      }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Network/networkSecurityGroups', format('nsg-apim-{0}', parameters('vnetName')))]"
+                      ]
                     }
                   ],
                   "outputs": {
