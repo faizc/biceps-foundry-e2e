@@ -19,6 +19,13 @@ languages:
 > Please note this template does not support using Agent tools behind a VNET. Use the upstream "private network agent tools" template (template 19) if tool traffic must also go through your vnet. 
 
 ---
+## Source & Attribution
+
+This repository is derived from the [`15-private-network-standard-agent-setup`](https://github.com/microsoft-foundry/foundry-samples/tree/main/infrastructure/infrastructure-setup-bicep/15-private-network-standard-agent-setup) sample in [microsoft-foundry/foundry-samples](https://github.com/microsoft-foundry/foundry-samples) (copied from commit [`5fb7884`](https://github.com/microsoft-foundry/foundry-samples/commit/5fb7884f536b8360cf22c5162c7e9c394753f5f9)), licensed under the MIT License (see [LICENSE](LICENSE)). Refer to the original repository for upstream updates and related templates.
+
+Changes in this repository include an API Management (APIM) inference gateway, an updated default model deployment, and a Deploy to Azure button that loads `azuredeploy.json` from this repository.
+
+---
 ## Overview
 This infrastructure-as-code (IaC) solution deploys a network-secured agent environment with private networking and role-based access control (RBAC).
 
